@@ -1,5 +1,7 @@
 use itertools::{Itertools};
 
+type Maps = Vec<Vec<(i64, i64, i64)>>;
+
 fn main() {
     let input = parse(include_str!("../../data/day5/input.txt"));
 
@@ -7,24 +9,21 @@ fn main() {
     puzzle_2(&input);
 }
 
-fn parse(raw_input: &str) -> (Vec<i64>, Vec<Vec<(i64, i64, i64)>>)
+fn parse(raw_input: &str) -> (Vec<i64>, Maps)
 {
     let (first, rest) = raw_input.split_once("\n\n").unwrap();
 
     let seeds = first
         .split(' ')
-        .into_iter()
         .skip(1)
         .map(|d| d.parse::<i64>().unwrap())
         .collect::<Vec<i64>>();
 
     let maps = rest
         .split("\n\n")
-        .into_iter()
         .map(|section| {
             section
                 .split('\n')
-                .into_iter()
                 .skip(1)
                 .map(|line| line
                     .splitn(3,' ')
@@ -39,13 +38,13 @@ fn parse(raw_input: &str) -> (Vec<i64>, Vec<Vec<(i64, i64, i64)>>)
     (seeds, maps)
 }
 
-fn puzzle_1((seeds, maps): &(Vec<i64>, Vec<Vec<(i64, i64, i64)>>)) -> i64 {
+fn puzzle_1((seeds, maps): &(Vec<i64>, Maps)) -> i64 {
     seeds
         .iter()
         .map(|seed| {
             maps
                 .iter()
-                .fold(seed.clone(), | value, ranges | {
+                .fold(*seed, | value, ranges | {
                     for &(destination_range_start, source_range_start, range_length) in ranges {
                         let offset = value - source_range_start;
 
@@ -61,9 +60,9 @@ fn puzzle_1((seeds, maps): &(Vec<i64>, Vec<Vec<(i64, i64, i64)>>)) -> i64 {
         .unwrap()
 }
 
-fn puzzle_2((seeds, maps): &(Vec<i64>, Vec<Vec<(i64, i64, i64)>>)) -> i64 {
+fn puzzle_2((seeds, maps): &(Vec<i64>, Maps)) -> i64 {
     let value_ranges = seeds
-        .into_iter()
+        .iter()
         .chunks(2)
         .into_iter()
         .map(|mut c| {
