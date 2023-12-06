@@ -62,27 +62,27 @@ mod tests {
     fn test_puzzle_1_example() {
         let input = parse(include_str!("../../data/day1/input_example.txt"));
 
-        assert_eq!(puzzle_1(&input), 142i32);
+        assert_eq!(puzzle_1(input), 142i32);
     }
 
     #[test]
     fn test_puzzle_1() {
         let input = parse(include_str!("../../data/day1/input.txt"));
 
-        assert_eq!(puzzle_1(&input), 54953i32);
+        assert_eq!(puzzle_1(input), 54953i32);
     }
 
     #[test]
     fn test_puzzle_2_example() {
         let input = parse(include_str!("../../data/day1/input_example_2.txt"));
 
-        assert_eq!(puzzle_2(&input), 281i32);
+        assert_eq!(puzzle_2(input), 281i32);
     }
 
     #[test]
     fn test_puzzle_2() {
         let input = parse(include_str!("../../data/day1/input.txt"));
 
-        assert_eq!(puzzle_2(&input), 53868i32);
+        assert_eq!(puzzle_2(input), 53868i32);
     }
 }
