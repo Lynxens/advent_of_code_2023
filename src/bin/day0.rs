@@ -3,20 +3,20 @@
 fn main() {
     let input = parse(include_str!("../../data/day0/input.txt"));
 
-    puzzle_1(input);
-    puzzle_2(input);
+    puzzle_1(&input);
+    puzzle_2(&input);
 }
 
-fn parse(raw_input: &str) -> &str
+fn parse(raw_input: &str) -> DATA_TYPE
 {
     raw_input
 }
 
-fn puzzle_1(_data: &str) -> i32 {
+fn puzzle_1(_data: &DATA_TYPE) -> i32 {
     0
 }
 
-fn puzzle_2(_data: &str) -> i32 {
+fn puzzle_2(_data: &DATA_TYPE) -> i32 {
     0
 }
 
@@ -28,27 +28,27 @@ mod tests {
     fn test_puzzle_1_example() {
         let input = parse(include_str!("../../data/day0/input_example.txt"));
 
-        assert_eq!(puzzle_1(input), 13);
+        assert_eq!(puzzle_1(&input), 0);
     }
 
     #[test]
     fn test_puzzle_1() {
         let input = parse(include_str!("../../data/day0/input.txt"));
 
-        assert_eq!(puzzle_1(input), 21158);
+        assert_eq!(puzzle_1(&input), 0);
     }
 
     #[test]
     fn test_puzzle_2_example() {
         let input = parse(include_str!("../../data/day0/input_example.txt"));
 
-        assert_eq!(puzzle_2(input), 30);
+        assert_eq!(puzzle_2(&input), 0);
     }
 
     #[test]
     fn test_puzzle_2() {
         let input = parse(include_str!("../../data/day0/input.txt"));
 
-        assert_eq!(puzzle_2(input), 6050769);
+        assert_eq!(puzzle_2(&input), 0);
     }
 }
