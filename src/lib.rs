@@ -1,4 +1,4 @@
-fn moore_neighborhood((y, x): (usize, usize), height: usize, width: usize) -> Vec<(usize, usize)> {
+pub fn moore_neighborhood((y, x): (usize, usize), height: usize, width: usize) -> Vec<(usize, usize)> {
     [
         (y.wrapping_sub(1), x.wrapping_sub(1)),
         (y.wrapping_sub(1), x),
