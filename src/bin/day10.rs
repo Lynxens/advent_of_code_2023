@@ -2,7 +2,7 @@ use std::cmp::Ordering;
 use itertools::Itertools;
 use nom::InputIter;
 use advent_of_code_2023::*;
-use crate::Direction::{East, North, South, West};
+use advent_of_code_2023::Direction::{East, North, South, West};
 
 fn main() {
     let input = parse(include_str!("../../data/day10/input.txt"));
@@ -10,8 +10,6 @@ fn main() {
     puzzle_1(&input);
     puzzle_2(&input);
 }
-
-type Coordinate = (usize, usize);
 
 struct LoopMap {
     map: Vec<Vec<char>>,
@@ -26,8 +24,8 @@ struct Branch {
     intersection_count: usize,
 }
 
-enum Direction { North, East, South, West }
-type Compass = Vec<(Direction, Coordinate)>;
+const OUTSIDE: char = '0';
+const INSIDE: char = '1';
 
 fn parse(raw_input: &str) -> LoopMap {
     let start_i = raw_input.position(|c| c == 'S').unwrap();
@@ -52,13 +50,6 @@ fn puzzle_1(loop_map: &LoopMap) -> usize {
     find_longest_loop(loop_map).len() / 2
 }
 
-const OUTSIDE: char = '0';
-const INSIDE: char = '1';
-const V_PATH: char = 'V';
-const H_PATH: char = 'H';
-const VISITED_V_PATH: char = 'Y';
-const VISITED_H_PATH: char = 'X';
-
 fn puzzle_2(loop_map: &LoopMap) -> usize {
     let longest_loop = find_longest_loop(loop_map);
 
@@ -69,66 +60,20 @@ fn puzzle_2(loop_map: &LoopMap) -> usize {
         .iter()
         .for_each(|&c| map[c.0][c.1] = loop_map.map[c.0][c.1]);
 
-    // Convert start of loop to the correct pipe
-    map[loop_map.start.0][loop_map.start.1] = match (
-        compare_coordinates(&loop_map.start, &longest_loop[2]),
-        compare_coordinates(&loop_map.start, &longest_loop[longest_loop.len() - 1])
-    ) {
-        ((_, Ordering::Equal), (_, Ordering::Equal)) => Ok('|'),
-        ((Ordering::Equal, _), (Ordering::Equal, _)) => Ok('-'),
-        ((Ordering::Less, _), (_, Ordering::Greater)) => Ok('L'),
-        ((_, Ordering::Greater), (Ordering::Less, _)) => Ok('L'),
-        ((Ordering::Less, _), (_, Ordering::Less)) => Ok('J'),
-        ((_, Ordering::Less), (Ordering::Less, _)) => Ok('J'),
-        ((_, Ordering::Less), (Ordering::Greater, _)) => Ok('7'),
-        ((Ordering::Greater, _), (_, Ordering::Less)) => Ok('7'),
-        ((Ordering::Greater, _), (_, Ordering::Greater)) => Ok('F'),
-        ((_, Ordering::Greater), (Ordering::Greater, _)) => Ok('F'),
-        _ => Err("Could not connect pipes")
-    }.expect("Could not connect pipes");
-
-    // Add vertical and horizontal pathways
-    // longest_loop
-    //     .iter()
-    //     .for_each(|&c| {
-    //         let c_sign = map[c.0][c.1];
-    //
-    //         for &nc in von_neumann_neighborhood(c, loop_map.height, loop_map.width).iter() {
-    //             let nc_sign = map[nc.0][nc.1];
-    //
-    //             let sign = match (c_sign, nc_sign, compare_coordinates(&c, &nc)) {
-    //                 ('|' | 'L' | 'F' | V_PATH, '|' | '7' | 'J' | V_PATH, (_, Ordering::Less)) => V_PATH,
-    //                 ('|' | '7' | 'J' | V_PATH, '|' | 'L' | 'F' | V_PATH, (_, Ordering::Greater)) => V_PATH,
-    //                 ('-' | '7' | 'F' | H_PATH, '-' | 'L' | 'J' | H_PATH,  (Ordering::Less, _)) => H_PATH,
-    //                 ('-' | 'L' | 'J' | H_PATH, '-' | '7' | 'F' | H_PATH,  (Ordering::Greater, _)) => H_PATH,
-    //                 _ => continue,
-    //             };
-    //
-    //             map[c.0][c.1] = sign;
-    //             break;
-    //         }
-    //     });
-
     let mut queue: Vec<Coordinate> = get_boundary_coordinates(loop_map.height, loop_map.width)
         .into_iter()
         .filter(|&c| {
-            let sign = map[c.0][c.1];
+            if map[c.0][c.1] == INSIDE {
+                map[c.0][c.1] = OUTSIDE;
+                return true;
+            }
 
-            map[c.0][c.1] = match sign {
-                INSIDE => OUTSIDE,
-                // V_PATH => VISITED_V_PATH,
-                // H_PATH => VISITED_H_PATH,
-                _ => return false,
-            };
-
-            return true;
+            return false;
         })
         .collect();
 
     let mut has_followed_loop = false;
     while let Some(c) = queue.pop() {
-        let c_sign = map[c.0][c.1];
-
         for (direction, nc) in von_neumann_compass(c, loop_map.height, loop_map.width).into_iter() {
             let nc_sign = map[nc.0][nc.1];
 
@@ -137,8 +82,7 @@ fn puzzle_2(loop_map: &LoopMap) -> usize {
                     map[nc.0][nc.1] = OUTSIDE;
                     queue.push(nc);
                 },
-                OUTSIDE => continue,
-                _ => {
+                '-' | '|' => {
                     if has_followed_loop {
                        continue
                     }
@@ -147,16 +91,42 @@ fn puzzle_2(loop_map: &LoopMap) -> usize {
                     let mut rotated_loop = longest_loop.clone();
                     rotated_loop.rotate_left(loop_index);
 
-
-                    for (&current_lc, &next_lc) in rotated_loop.iter().tuple_windows() {
-                        match compare_coordinates(&current_lc, &next_lc) {
-                            (O)
+                    let mut outside_direction = direction.opposite();
+                    let mut last_direction = movement_direction(&rotated_loop[0], &rotated_loop[1]);
+                    for (current_lc, next_lc) in rotated_loop.iter().skip(1).tuple_windows() {
+                        match coordinate_in_direction(current_lc, &outside_direction, loop_map.height, loop_map.width) {
+                            Some(outside_coordinate) => {
+                                if map[outside_coordinate.0][outside_coordinate.1] == INSIDE {
+                                    map[outside_coordinate.0][outside_coordinate.1] = OUTSIDE;
+                                    queue.push(outside_coordinate);
+                                }
+                            },
+                            None => {},
                         }
+
+                        let current_direction = movement_direction(current_lc, next_lc);
+                        outside_direction = match (last_direction, current_direction) {
+                            (North, East) | (East, South) | (South, West) | (West, North) => outside_direction.rotate_clockwise(),
+                            (North, West) | (West, South) | (South, East) | (East, North) => outside_direction.rotate_counterclockwise(),
+                            _ => outside_direction,
+                        };
+
+                        match coordinate_in_direction(current_lc, &outside_direction, loop_map.height, loop_map.width) {
+                            Some(outside_coordinate) => {
+                                if map[outside_coordinate.0][outside_coordinate.1] == INSIDE {
+                                    map[outside_coordinate.0][outside_coordinate.1] = OUTSIDE;
+                                    queue.push(outside_coordinate);
+                                }
+                            },
+                            None => {},
+                        }
+
+                        last_direction = current_direction;
                     }
 
-
-                    has_followed_loop = false;
-                }
+                    has_followed_loop = true;
+                },
+                _ => continue,
             }
         }
     }
@@ -175,10 +145,10 @@ fn find_longest_loop(loop_map: &LoopMap) -> Vec<Coordinate> {
     let mut longest_path: Vec<Coordinate> = Vec::new();
     let mut path: Vec<Coordinate> = Vec::from([loop_map.start]);
     let mut intersections: Vec<Coordinate> = Vec::new();
-    let mut branches: Vec<Branch> = von_neumann_neighborhood(loop_map.start, loop_map.height, loop_map.width)
+    let mut branches: Vec<Branch> = von_neumann_compass(loop_map.start, loop_map.height, loop_map.width)
         .into_iter()
-        .filter(|&(y, x)| loop_map.map[y][x] != '.')
-        .map(|coord| Branch { coord, path_length: 1, intersection_count: 0 })
+        .filter(|&(_, c)| loop_map.map[c.0][c.1] != '.')
+        .map(|(_, c)| Branch { coord: c, path_length: 1, intersection_count: 0 })
         .collect();
 
     'branch_loop: while let Some(branch) = branches.pop() {
@@ -189,24 +159,25 @@ fn find_longest_loop(loop_map: &LoopMap) -> Vec<Coordinate> {
         while current_coord != loop_map.start {
             let current_sign = loop_map.map[current_coord.0][current_coord.1];
 
-            let mut connecting_pipes: Vec<Coordinate> = von_neumann_neighborhood(current_coord, loop_map.height, loop_map.width)
+            let mut connecting_pipes: Vec<Coordinate> = von_neumann_compass(current_coord, loop_map.height, loop_map.width)
                 .into_iter()
-                .filter(|&next_coord| {
+                .filter_map(|(direction, next_coord)| {
                     let next_sign = loop_map.map[next_coord.0][next_coord.1];
 
                     if next_sign == '.' || next_coord == path[path.len() -1] || intersections.contains(&next_coord) {
-                        return false;
+                        return None;
                     }
 
-                    match (current_sign, next_sign, compare_coordinates(&current_coord, &next_coord)) {
-                        (_, 'S', _) => true,
-                        ('|' | 'L' | 'J', '|' | '7' | 'F', (Ordering::Less, _)) => true,
-                        ('|' | '7' | 'F', '|' | 'L' | 'J',  (Ordering::Greater, _)) => true,
-                        ('-' | 'J' | '7', '-' | 'L' | 'F', (_, Ordering::Less)) => true,
-                        ('-' | 'L' | 'F', '-' | '7' | 'J', (_, Ordering::Greater)) => true,
-                        _ => false,
+                    match (current_sign, next_sign, direction) {
+                        (_, 'S', _) => Some(next_coord),
+                        ('|' | 'L' | 'J', '|' | '7' | 'F', North) => Some(next_coord),
+                        ('|' | '7' | 'F', '|' | 'L' | 'J',  South) => Some(next_coord),
+                        ('-' | 'J' | '7', '-' | 'L' | 'F', West) => Some(next_coord),
+                        ('-' | 'L' | 'F', '-' | '7' | 'J', East) => Some(next_coord),
+                        _ => None,
                     }
-                }).collect();
+                })
+                .collect();
 
             path.push(current_coord);
 
@@ -235,62 +206,15 @@ fn find_longest_loop(loop_map: &LoopMap) -> Vec<Coordinate> {
     longest_path
 }
 
-fn von_neumann_neighborhood((y, x): (usize, usize), height: usize, width: usize) -> Vec<(usize, usize)> {
-    [
-        (y.wrapping_sub(1), x),
-        (y, x.wrapping_sub(1)),
-        (y, x + 1),
-        (y + 1, x),
-    ]
-        .into_iter()
-        .filter(|&(ny, nx)| ny < height && nx < width)
-        .collect()
+fn movement_direction(from: &Coordinate, to: &Coordinate) -> Direction {
+    match (to.0.cmp(&from.0), to.1.cmp(&from.1)) {
+        (Ordering::Less, Ordering::Equal) => Ok(North),
+        (Ordering::Equal, Ordering::Greater) => Ok(East),
+        (Ordering::Greater, Ordering::Equal) => Ok(South),
+        (Ordering::Equal, Ordering::Less) => Ok(West),
+        _ => Err("Unknown direction"),
+    }.expect("Unknown direction")
 }
-
-
-fn von_neumann_compass((y, x): (usize, usize), height: usize, width: usize) -> Compass {
-    [
-        (North, (y.wrapping_sub(1), x)),
-        (East, (y, x + 1)),
-        (South, (y + 1, x)),
-        (West, (y, x.wrapping_sub(1))),
-    ]
-        .into_iter()
-        .filter(|&(_, (ny, nx))| ny < height && nx < width)
-        .collect()
-}
-
-fn compare_coordinates(from: &Coordinate, to: &Coordinate) -> (Ordering, Ordering) {
-    (
-        to.0.cmp(&from.0),
-        to.1.cmp(&from.1),
-    )
-}
-
-fn get_boundary_coordinates(height: usize, width: usize) -> Vec<Coordinate> {
-    let top: Vec<Coordinate> = vec![0; width]
-        .into_iter()
-        .zip(0..width)
-        .collect();
-
-    let bottom: Vec<Coordinate> = vec![height - 1; width]
-        .into_iter()
-        .zip(0..width)
-        .collect();
-
-    let left: Vec<Coordinate> = (0..height)
-        .into_iter()
-        .zip(vec![0; height])
-        .collect();
-
-    let right: Vec<Coordinate> = (0..height)
-        .into_iter()
-        .zip(vec![width - 1; height])
-        .collect();
-
-    Vec::from_iter([top, right, bottom, left].into_iter().flatten())
-}
-
 
 #[cfg(test)]
 mod tests {
@@ -325,6 +249,6 @@ mod tests {
     fn test_puzzle_2() {
         let input = parse(include_str!("../../data/day10/input.txt"));
 
-        assert_eq!(puzzle_2(&input), 0);
+        assert_eq!(puzzle_2(&input), 381);
     }
 }
