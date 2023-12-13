@@ -23,8 +23,8 @@ fn parse(raw_input: &str, repeat: usize) -> Vec<ConditionRecord>
             let (left, right) = l.split_once(' ').unwrap();
 
             ConditionRecord {
-                springs: vec![left; repeat].join(&"?").chars().collect(),
-                groups: vec![right; repeat].join(&",").split(',').map(|count| count.parse::<usize>().unwrap()).collect(),
+                springs: vec![left; repeat].join("?").chars().collect(),
+                groups: vec![right; repeat].join(",").split(',').map(|count| count.parse::<usize>().unwrap()).collect(),
             }
         })
         .collect()
@@ -33,14 +33,14 @@ fn parse(raw_input: &str, repeat: usize) -> Vec<ConditionRecord>
 fn puzzle_1(data: &[ConditionRecord]) -> u64 {
     data
         .iter()
-        .map(|record| count_possible_arrangements(record))
+        .map(count_possible_arrangements)
         .sum()
 }
 
 fn puzzle_2(data: &[ConditionRecord]) -> u64 {
     data
         .iter()
-        .map(|record| count_possible_arrangements(record))
+        .map(count_possible_arrangements)
         .sum()
 }
 
@@ -59,9 +59,8 @@ fn traverse_arrangement_tree(record: &ConditionRecord, spring_index: usize, grou
         return 0;
     }
 
-    match memo.get(&(spring_index, group_index)) {
-        Some(&total) => return total,
-        None => {}
+    if let Some(&total) = memo.get(&(spring_index, group_index)) {
+        return total;
     }
 
     let count_with_operational_next = match record.springs[spring_index] {
@@ -83,7 +82,7 @@ fn traverse_arrangement_tree(record: &ConditionRecord, spring_index: usize, grou
 
     memo.insert((spring_index, group_index), sum);
 
-    return sum;
+    sum
 }
 
 fn next_spring_index_with_group(record: &ConditionRecord, spring_index: usize, group_index: usize) -> Option<usize> {
@@ -98,7 +97,7 @@ fn next_spring_index_with_group(record: &ConditionRecord, spring_index: usize, g
     }
 
     if group_index == (record.groups.len() - 1) {
-        return if record.springs[spring_index + next_group_size..].iter().all(|&c| c != '#') {
+        if record.springs[spring_index + next_group_size..].iter().all(|&c| c != '#') {
             Some(spring_index + next_group_size)
         } else {
             None

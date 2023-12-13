@@ -17,16 +17,16 @@ pub fn moore_neighborhood((y, x): (usize, usize), height: usize, width: usize) -
         .collect()
 }
 
-pub fn transpose<T: Copy>(matrix: &Vec<Vec<T>>) -> Vec<Vec<T>> {
+pub fn transpose<T: Copy>(matrix: &[Vec<T>]) -> Vec<Vec<T>> {
     let mut row_iters: Vec<Iter<T>> = matrix
-        .into_iter()
-        .map(|r| r.into_iter())
+        .iter()
+        .map(|r| r.iter())
         .collect();
 
     (0..matrix.first().unwrap().len())
         .map(|_| row_iters
             .iter_mut()
-            .map(|it| it.next().unwrap().clone())
+            .map(|it| *it.next().unwrap())
             .collect::<Vec<T>>()
         )
         .collect()
@@ -52,12 +52,10 @@ pub fn get_boundary_coordinates(height: usize, width: usize) -> Vec<(usize, usiz
         .collect();
 
     let left: Vec<(usize, usize)> = (0..height)
-        .into_iter()
         .zip(vec![0; height])
         .collect();
 
     let right: Vec<(usize, usize)> = (0..height)
-        .into_iter()
         .zip(vec![width - 1; height])
         .collect();
 

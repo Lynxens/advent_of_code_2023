@@ -68,7 +68,7 @@ fn puzzle_2(loop_map: &LoopMap) -> usize {
                 return true;
             }
 
-            return false;
+            false
         })
         .collect();
 
@@ -93,15 +93,13 @@ fn puzzle_2(loop_map: &LoopMap) -> usize {
 
                     let mut outside_direction = direction.opposite();
                     let mut last_direction = movement_direction(&rotated_loop[0], &rotated_loop[1]);
+
                     for (current_lc, next_lc) in rotated_loop.iter().skip(1).tuple_windows() {
-                        match coordinate_in_direction(current_lc, &outside_direction, loop_map.height, loop_map.width) {
-                            Some(outside_coordinate) => {
-                                if map[outside_coordinate.0][outside_coordinate.1] == INSIDE {
-                                    map[outside_coordinate.0][outside_coordinate.1] = OUTSIDE;
-                                    queue.push(outside_coordinate);
-                                }
-                            },
-                            None => {},
+                        if let Some(outside_coordinate) = coordinate_in_direction(current_lc, &outside_direction, loop_map.height, loop_map.width) {
+                            if map[outside_coordinate.0][outside_coordinate.1] == INSIDE {
+                                map[outside_coordinate.0][outside_coordinate.1] = OUTSIDE;
+                                queue.push(outside_coordinate);
+                            }
                         }
 
                         let current_direction = movement_direction(current_lc, next_lc);
@@ -111,14 +109,11 @@ fn puzzle_2(loop_map: &LoopMap) -> usize {
                             _ => outside_direction,
                         };
 
-                        match coordinate_in_direction(current_lc, &outside_direction, loop_map.height, loop_map.width) {
-                            Some(outside_coordinate) => {
-                                if map[outside_coordinate.0][outside_coordinate.1] == INSIDE {
-                                    map[outside_coordinate.0][outside_coordinate.1] = OUTSIDE;
-                                    queue.push(outside_coordinate);
-                                }
-                            },
-                            None => {},
+                        if let Some(outside_coordinate) = coordinate_in_direction(current_lc, &outside_direction, loop_map.height, loop_map.width) {
+                            if map[outside_coordinate.0][outside_coordinate.1] == INSIDE {
+                                map[outside_coordinate.0][outside_coordinate.1] = OUTSIDE;
+                                queue.push(outside_coordinate);
+                            }
                         }
 
                         last_direction = current_direction;

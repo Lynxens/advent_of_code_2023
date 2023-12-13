@@ -27,14 +27,13 @@ fn calculate_summed_galaxy_distances(space: &[&str], expansion_factor: usize) ->
     let galaxies: Vec<(usize, usize)> = space
         .iter()
         .enumerate()
-        .map(|(i, &row)| {
+        .flat_map(|(i, &row)| {
             row
                 .chars()
                 .positions(|c| c == '#')
                 .map(|j| (i, j))
                 .collect::<Vec<(usize, usize)>>()
         })
-        .flatten()
         .collect();
 
     let row_expansion_factor: Vec<usize> = space

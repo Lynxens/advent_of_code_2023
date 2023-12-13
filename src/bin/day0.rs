@@ -7,16 +7,18 @@ fn main() {
     puzzle_2(&input);
 }
 
-fn parse(raw_input: &str) -> DATA_TYPE
+fn parse(raw_input: &str) -> Vec<&str>
 {
     raw_input
+        .lines()
+        .collect()
 }
 
-fn puzzle_1(_data: &DATA_TYPE) -> i32 {
+fn puzzle_1(_data: &[&str]) -> i32 {
     0
 }
 
-fn puzzle_2(_data: &DATA_TYPE) -> i32 {
+fn puzzle_2(_data: &[&str]) -> i32 {
     0
 }
 

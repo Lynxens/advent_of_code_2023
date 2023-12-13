@@ -44,18 +44,14 @@ fn puzzle_2(data: &[Pattern]) -> usize {
 
 fn find_mirror_position(pattern: &Pattern) -> Option<usize> {
     (1..pattern.len())
-        .into_iter()
         .find(|&position| (1..=min(position, pattern.len() - position))
-            .into_iter()
             .all(|offset| pattern[position - offset] == pattern[position + offset - 1])
         )
 }
 
 fn find_mirror_position_with_smudge(pattern: &Pattern) -> Option<usize> {
     (1..pattern.len())
-        .into_iter()
         .find(|&position| (1..=min(position, pattern.len() - position))
-            .into_iter()
             .try_fold(false, | found_smudge, offset | {
                 let diff = count_different_elements(&pattern[position - offset], &pattern[position + offset - 1]);
                 match (diff, found_smudge) {
