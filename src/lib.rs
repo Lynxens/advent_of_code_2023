@@ -32,6 +32,17 @@ pub fn transpose<T: Copy>(matrix: &[Vec<T>]) -> Vec<Vec<T>> {
         .collect()
 }
 
+pub fn reverse_rows<T: Copy>(matrix: &[Vec<T>]) -> Vec<Vec<T>> {
+    matrix
+        .iter()
+        .map(|row| row.clone().into_iter().rev().collect::<Vec<T>>())
+        .collect()
+}
+
+pub fn reverse_columns<T: Copy>(matrix: &[Vec<T>]) -> Vec<Vec<T>> {
+    transpose(&reverse_rows(&transpose(matrix)))
+}
+
 pub fn count_different_elements<T: Eq>(a: &[T], b: &[T]) -> usize {
     a
         .iter()
