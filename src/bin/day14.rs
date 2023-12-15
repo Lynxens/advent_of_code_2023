@@ -44,14 +44,14 @@ fn find_cycle(data: &[Vec<char>]) -> (Vec<usize>, usize) {
         if let Some(cycle_indices) = load_to_cycle_index.get_mut(&load) {
             cycle_indices.push(cycle_index);
 
-            if cycle_indices.len() == 4 {
+            if cycle_indices.len() == 3 {
                 let diffs: Vec<usize> = cycle_indices
                     .iter()
                     .tuple_windows()
                     .map(|(&la, &lb)| lb - la)
                     .collect();
 
-                if diffs.iter().all_equal() {
+                if diffs.iter().all_equal() && diffs[0] != 1 {
                     return (cycle[cycle_indices[0]..cycle_indices[1]].to_vec(), cycle_indices[0] + 1);
                 }
             }
