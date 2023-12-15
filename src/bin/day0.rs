@@ -3,8 +3,8 @@
 fn main() {
     let input = parse(include_str!("../../data/day0/input.txt"));
 
-    puzzle_1(&input);
-    puzzle_2(&input);
+    println!("Puzzle 1: {}", puzzle_1(&input));
+    println!("Puzzle 2: {}", puzzle_2(&input));
 }
 
 fn parse(raw_input: &str) -> Vec<&str>
