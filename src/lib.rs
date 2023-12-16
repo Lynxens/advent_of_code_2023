@@ -76,7 +76,7 @@ pub fn get_boundary_coordinates(height: usize, width: usize) -> Vec<(usize, usiz
 pub type Coordinate = (usize, usize);
 pub type Compass = Vec<(Direction, Coordinate)>;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Eq, PartialEq, Hash)]
 pub enum Direction { North, East, South, West }
 impl Direction {
     pub fn opposite(&self) -> Self {
