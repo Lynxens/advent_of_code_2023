@@ -77,7 +77,7 @@ pub type Coordinate = (usize, usize);
 pub type Compass = Vec<(Direction, Coordinate)>;
 
 #[derive(Clone, Copy, Eq, PartialEq, Hash)]
-pub enum Direction { North, East, South, West }
+pub enum Direction { North = 0, East = 1, South = 2, West = 3 }
 impl Direction {
     pub fn opposite(&self) -> Self {
         match self {
@@ -125,6 +125,17 @@ pub fn coordinate_in_direction(coordinate: &Coordinate, direction: &Direction, h
         East => (coordinate.0, coordinate.1 + 1),
         South => (coordinate.0 + 1, coordinate.1),
         West => (coordinate.0, coordinate.1.wrapping_sub(1)),
+    };
+
+    if next_coordinate.0 < height && next_coordinate.1 < width { Some(next_coordinate) } else { None }
+}
+
+pub fn coordinate_steps_in_direction(coordinate: &Coordinate, steps: usize, direction: &Direction, height: usize, width: usize) -> Option<Coordinate> {
+    let next_coordinate = match direction {
+        North => (coordinate.0.wrapping_sub(steps), coordinate.1),
+        East => (coordinate.0, coordinate.1 + steps),
+        South => (coordinate.0 + steps, coordinate.1),
+        West => (coordinate.0, coordinate.1.wrapping_sub(steps)),
     };
 
     if next_coordinate.0 < height && next_coordinate.1 < width { Some(next_coordinate) } else { None }
