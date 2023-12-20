@@ -1,6 +1,6 @@
 use std::collections::{HashMap};
-use std::mem::swap;
 use nom::Slice;
+use advent_of_code_2023::lcm;
 
 fn main() {
     let input = parse(include_str!("../../data/day8/input.txt"));
@@ -77,28 +77,6 @@ fn puzzle_2((directions, node_map): &(Vec<usize>, HashMap<&str, [&str; 2]>)) -> 
             lcm(least_common_multiple, cycle_length)
         })
         .unwrap()
-}
-
-fn lcm(first: i128, second: i128) -> i128 {
-    first * second / gcd(first, second)
-}
-
-fn gcd(first: i128, second: i128) -> i128 {
-    let mut max = first;
-    let mut min = second;
-    if min > max {
-        swap(&mut max, &mut min);
-    }
-
-    loop {
-        let res = max % min;
-        if res == 0 {
-            return min;
-        }
-
-        max = min;
-        min = res;
-    }
 }
 
 #[cfg(test)]

@@ -1,4 +1,5 @@
 use std::cmp::Ordering;
+use std::mem::swap;
 use std::slice::Iter;
 use crate::Direction::{East, North, South, West};
 
@@ -150,4 +151,26 @@ pub fn coordinate_steps_in_direction(coordinate: &Coordinate, steps: usize, dire
     };
 
     if next_coordinate.0 < height && next_coordinate.1 < width { Some(next_coordinate) } else { None }
+}
+
+pub fn lcm(first: i128, second: i128) -> i128 {
+    first * second / gcd(first, second)
+}
+
+pub fn gcd(first: i128, second: i128) -> i128 {
+    let mut max = first;
+    let mut min = second;
+    if min > max {
+        swap(&mut max, &mut min);
+    }
+
+    loop {
+        let res = max % min;
+        if res == 0 {
+            return min;
+        }
+
+        max = min;
+        min = res;
+    }
 }
