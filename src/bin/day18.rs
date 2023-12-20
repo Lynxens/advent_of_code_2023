@@ -1,4 +1,3 @@
-use std::cmp::Ordering;
 use itertools::Itertools;
 use nom::Slice;
 use advent_of_code_2023::{Direction};
@@ -12,12 +11,11 @@ fn main() {
     println!("Puzzle 2: {}", puzzle_2(&input_hex));
 }
 
+#[derive(Copy, Clone)]
 struct Instruction {
     direction: Direction,
     size: i64,
 }
-
-type Trench = Vec<(i64, i64)>;
 
 fn parse(raw_input: &str, use_hex: bool) -> Vec<Instruction>
 {
@@ -55,57 +53,25 @@ fn parse(raw_input: &str, use_hex: bool) -> Vec<Instruction>
 }
 
 fn puzzle_1(data: &[Instruction]) -> i64 {
-    let trench = dig_trench(data);
-    measure_trench(&trench)
+    measure_trench_from_instructions(data)
 }
 
 fn puzzle_2(data: &[Instruction]) -> i64 {
-    let trench = dig_trench(data);
-    measure_trench(&trench)
+    measure_trench_from_instructions(data)
 }
 
-fn dig_trench(instructions: &[Instruction]) -> Trench {
-    let mut coords: Vec<(i64, i64)> = Vec::new();
-    let mut x = 0;
-    let mut y = 0;
-
-    coords.push((y, x));
-
-    for instruction in instructions.iter() {
-        match instruction.direction {
-            North => y -= instruction.size,
-            South => y += instruction.size,
-            East => x += instruction.size,
-            West => x -= instruction.size,
-        };
-
-        coords.push((y, x));
-    }
-
-    coords
-}
-
-fn measure_trench(trench: &Trench) -> i64 {
-    let area: i64 = trench
+fn measure_trench_from_instructions(instructions: &[Instruction]) -> i64 {
+    instructions
         .iter()
-        .tuple_windows()
-        .map(|((y0, x0), (y1, x1))| {
-            let dx = (x1 - x0).abs();
-            let dy = (y1 - y0).abs();
-
-            match (x1.cmp(&x0), y1.cmp(&y0)) {
-                (Ordering::Greater, _) => dx * y0, // West: Add area below coordinates
-                (Ordering::Less, _) => -dx * (y0 + 1), // East: Subtract area below coordinates and the horizontal line above
-                (_, Ordering::Less) => -dy, // North: Subtract vertical line
-                _ => 0, // South: Do nothing
+        .fold((1, 0, 0), | (area, y, x), i | { // Start at 1 to include the origin point
+            match i.direction {
+                North => (area, y - i.size, x), // Do nothing
+                South => (area + i.size, y + i.size, x), // Add the vertical line
+                West => (area + (i.size * y), y, x + i.size), // Add the size of the area below the two coordinates
+                East => (area - (i.size * (y - 1)), y, x - i.size), // Subtract the size of the area below the two coordinates without the top horizontal line
             }
-        })
-        .sum::<i64>()
-        .abs();
-
-    area + 1 // +1 for origin point
+        }).0
 }
-
 
 #[cfg(test)]
 mod tests {

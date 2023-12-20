@@ -1,3 +1,4 @@
+use std::cmp::Ordering;
 use std::slice::Iter;
 use crate::Direction::{East, North, South, West};
 
@@ -79,6 +80,16 @@ pub type Compass = Vec<(Direction, Coordinate)>;
 #[derive(Clone, Copy, Eq, PartialEq, Hash)]
 pub enum Direction { North = 0, East = 1, South = 2, West = 3 }
 impl Direction {
+    pub fn from_coordinates<T: Ord>((y0, x0): &(T, T), (y1, x1): &(T, T)) -> Self {
+        match (y0.cmp(y1), x0.cmp(x1)) {
+            (Ordering::Less, Ordering::Equal) => Ok(South),
+            (Ordering::Greater, Ordering::Equal) => Ok(North),
+            (Ordering::Equal, Ordering::Less) => Ok(East),
+            (Ordering::Equal, Ordering::Greater) => Ok(West),
+            _ => Err("Unexpected direction"),
+        }.expect("")
+    }
+
     pub fn opposite(&self) -> Self {
         match self {
             North => South,
